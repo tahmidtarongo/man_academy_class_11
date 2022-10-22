@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/contact.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:untitled/contact_details.dart';
 import 'package:untitled/contact_list_model.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,7 +16,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Gridview',
+      title: 'Contacts',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -52,6 +55,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
+  List<Contact> phoneBook = [];
   Future<void> _makeSms(String phoneNumber) async {
     final Uri launchUri = Uri(
       scheme: 'sms',
@@ -59,6 +63,22 @@ class _MyHomePageState extends State<MyHomePage> {
     );
     await launchUrl(launchUri);
     print('Data');
+  }
+
+  void getContactList() async{
+   var status = await FlutterContacts.requestPermission();
+   if(status){
+     phoneBook = await FlutterContacts.getContacts(
+         withProperties: true, withPhoto: true);
+   }else{
+     status = await FlutterContacts.requestPermission();
+   }
+  }
+
+  @override
+  void initState() {
+    getContactList();
+    super.initState();
   }
 
   @override
@@ -69,26 +89,26 @@ class _MyHomePageState extends State<MyHomePage> {
           // the App.build method, and use it to set our appbar title.
           title: Text('My Contacts'),
         ),
-        body: ListView.builder(
-            itemCount: contacts.length,
+        body: phoneBook.isEmpty ? Center(child: CircularProgressIndicator(),) : ListView.builder(
+            itemCount: phoneBook.length,
             itemBuilder: (_, index) {
               return ListTile(
-                contentPadding: EdgeInsets.all(4.0),
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ContactDetails(name: contacts[index]))),
+                contentPadding: const EdgeInsets.all(4.0),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ContactDetails(person: phoneBook[index]))),
                 leading: CircleAvatar(
                   radius: 30.0,
                   backgroundColor: Colors.indigoAccent,
                   child: Text(
-                    contacts[index].name?.substring(0, 1).toUpperCase() ?? '',
+                    phoneBook[index].displayName.substring(0, 1).toUpperCase() ?? '',
                     style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
                 title: Text(
-                  contacts[index].name ?? '',
-                  style: TextStyle(color: Colors.black, fontSize: 20.0, fontWeight: FontWeight.bold),
+                  phoneBook[index].displayName ?? '',
+                  style: const TextStyle(color: Colors.black, fontSize: 20.0, fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  contacts[index].mobile ?? '',
+                  phoneBook[index].phones[0].number ?? '',
                   style: TextStyle(color: Colors.grey, fontSize: 18.0),
                 ),
                 trailing: Row(
@@ -99,10 +119,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
                       },
                       child: CircleAvatar(
-                          child: Icon(
-                        Icons.phone,
-                        size: 20.0,
-                      ),),
+                        child: Icon(
+                          Icons.phone,
+                          size: 20.0,
+                        ),),
                     ),
                     SizedBox(
                       width: 8.0,
@@ -111,9 +131,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       onTap: () => _makeSms(contacts[index].mobile!),
                       child: CircleAvatar(
                           child: Icon(
-                        Icons.sms,
-                        size: 20.0,
-                      )),
+                            Icons.sms,
+                            size: 20.0,
+                          )),
                     )
                   ],
                 ),
