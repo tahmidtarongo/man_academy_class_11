@@ -1,9 +1,6 @@
+import 'package:badges/badges.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/contact.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:untitled/contact_details.dart';
-import 'package:untitled/contact_list_model.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:untitled/product_model.dart';
 
 void main() {
   runApp(const MyApp());
@@ -54,90 +51,229 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  List<String> categoryName = ['All', 'FootWear', 'Watch', 'T-shirt', 'Electronics', 'Fashion', 'Cosmetics'];
 
-  List<Contact> phoneBook = [];
-  Future<void> _makeSms(String phoneNumber) async {
-    final Uri launchUri = Uri(
-      scheme: 'sms',
-      path: phoneNumber,
-    );
-    await launchUrl(launchUri);
-    print('Data');
-  }
+  List<IconData> categoryIcons = [
+    Icons.dashboard,
+    Icons.ac_unit,
+    Icons.access_time_filled_sharp,
+    Icons.person,
+    Icons.mobile_friendly,
+    Icons.male,
+    Icons.microwave_rounded
+  ];
 
-  void getContactList() async{
-   var status = await FlutterContacts.requestPermission();
-   if(status){
-     phoneBook = await FlutterContacts.getContacts(
-         withProperties: true, withPhoto: true);
-   }else{
-     status = await FlutterContacts.requestPermission();
-   }
-  }
-
-  @override
-  void initState() {
-    getContactList();
-    super.initState();
-  }
+  int selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          // Here we take the value from the MyHomePage object that was created by
-          // the App.build method, and use it to set our appbar title.
-          title: Text('My Contacts'),
+      backgroundColor: Color(0xFFF8F8F8),
+      appBar: AppBar(
+        title: Text(
+          'MaanStore',
+          style: TextStyle(color: Colors.black),
         ),
-        body: phoneBook.isEmpty ? Center(child: CircularProgressIndicator(),) : ListView.builder(
-            itemCount: phoneBook.length,
-            itemBuilder: (_, index) {
-              return ListTile(
-                contentPadding: const EdgeInsets.all(4.0),
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ContactDetails(person: phoneBook[index]))),
-                leading: CircleAvatar(
-                  radius: 30.0,
-                  backgroundColor: Colors.indigoAccent,
-                  child: Text(
-                    phoneBook[index].displayName.substring(0, 1).toUpperCase() ?? '',
-                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
+        backgroundColor: Colors.transparent,
+        elevation: 0.0,
+        centerTitle: true,
+        leading: const Padding(
+          padding: EdgeInsets.all(10.0),
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            child: Icon(
+              Icons.dashboard,
+              color: Colors.pinkAccent,
+            ),
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(left: 10.0, top: 10.0, bottom: 10.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Badge(
+                badgeContent: const Text(
+                  '4',
+                  style: TextStyle(color: Colors.white),
                 ),
-                title: Text(
-                  phoneBook[index].displayName ?? '',
-                  style: const TextStyle(color: Colors.black, fontSize: 20.0, fontWeight: FontWeight.bold),
+                badgeColor: Colors.pinkAccent,
+                child: const Icon(
+                  Icons.shopping_cart_rounded,
+                  color: Colors.grey,
                 ),
-                subtitle: Text(
-                  phoneBook[index].phones[0].number ?? '',
-                  style: TextStyle(color: Colors.grey, fontSize: 18.0),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    GestureDetector(
-                      onTap: (){
-
-                      },
-                      child: CircleAvatar(
-                        child: Icon(
-                          Icons.phone,
-                          size: 20.0,
-                        ),),
-                    ),
-                    SizedBox(
-                      width: 8.0,
-                    ),
-                    GestureDetector(
-                      onTap: () => _makeSms(contacts[index].mobile!),
-                      child: CircleAvatar(
-                          child: Icon(
-                            Icons.sms,
-                            size: 20.0,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.white,
+              backgroundImage: NetworkImage('https://www.w3schools.com/w3images/avatar6.png'),
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    height: 50,
+                    width: MediaQuery.of(context).size.width / 1.25,
+                    child: TextField(
+                      keyboardType: TextInputType.name,
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0), borderSide: BorderSide.none),
+                          fillColor: Colors.white,
+                          filled: true,
+                          hintText: 'Search...',
+                          suffixIcon: const Icon(
+                            Icons.search,
+                            color: Colors.grey,
                           )),
-                    )
-                  ],
-                ),
-              );
-            }));
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.pinkAccent,
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                      child: Icon(
+                        Icons.filter_alt_rounded,
+                        color: Colors.white,
+                      ))
+                ],
+              ),
+              SizedBox(
+                height: 60.0,
+                child: ListView.builder(
+                    shrinkWrap: true,
+                    scrollDirection: Axis.horizontal,
+                    itemCount: categoryIcons.length,
+                    itemBuilder: (_, i) {
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedIndex = i;
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(10.0),
+                            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8.0), color: Colors.white),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  categoryIcons[i],
+                                  color: selectedIndex == i ? Colors.pinkAccent : Colors.grey,
+                                ),
+                                const SizedBox(
+                                  width: 4.0,
+                                ),
+                                Text(
+                                  categoryName[i],
+                                  style: TextStyle(color: selectedIndex == i ? Colors.pinkAccent : Colors.black),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+              ),
+              const SizedBox(
+                height: 10.0,
+              ),
+              Row(
+                children: const [
+                  Text(
+                    'Popular',
+                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18.0),
+                  ),
+                  Spacer(),
+                  Text(
+                    'See all',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ],
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 2.1,
+                    child: ListView.builder(
+                      physics: NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: productList.length ~/ 2,
+                      itemBuilder: (BuildContext context, int index) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            height: 80.0,
+                            width: double.infinity,
+                            color: Colors.pinkAccent,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  Spacer(),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 2.1,
+                    child: ListView.builder(
+                      itemCount: productList.length,
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemBuilder: (BuildContext context, int index) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            width: double.infinity,
+                            height: 150.0,
+                            color: productList[index].bgColor,
+                            child: Column(
+                              children: [
+                                Stack(
+                                  children: [
+                                    Image(image: NetworkImage(productList[index].productImage.toString()),height: 100.0,),
+                                    Visibility(
+                                      visible:productList[index].isNewProduct!,
+                                      child: Container(
+                                        padding: EdgeInsets.all(4.0),
+                                        decoration: BoxDecoration(
+                                          color: Colors.pinkAccent,
+                                          borderRadius: BorderRadius.circular(10.0)
+                                        ),
+                                        child: Text('New',style: TextStyle(color: Colors.white),),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
